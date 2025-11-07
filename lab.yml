@@ -1,10 +1,10 @@
 ---
 
 # --------------------------------------------------------------
-# Arista AutoVPN Deployment Guide Topology
+# Arista AutoVPN Demo
 # --------------------------------------------------------------
 
-name: arista-wan-autovpn-dg
+name: autovpn-demo
 
 prefix: ""
 
@@ -25,50 +25,37 @@ topology:
       image: ceos:latest
       memory: 4g
     linux:
-      image: mitchv85/devhost
+      image: ghcr.io/aristanetworks/aclabs/host-ubuntu:rev1.0
 
   nodes:
 
-  ###########################
-  ##### DC1
-  ###########################
+###########################
+##### WEST
+###########################
 
-    DC1-SPINE:
-      kind: ceos
-      mgmt-ipv4: 172.100.100.199
-      startup-config: ./configs/DC1-SPINE.cfg
-      ports:
-        - '22099:22'
-        - '8099:80'
-        - '44399:443'
-
-    DC1-LEAF:
+    WEST-AGG:
       kind: ceos
       mgmt-ipv4: 172.100.100.101
-      startup-config: ./configs/DC1-LEAF.cfg
+      binds:
+        - sn/west-agg.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/WEST-AGG.cfg
       ports:
         - '22001:22'
         - '8001:80'
         - '44301:443'
 
-    DC1-R1:
+    WEST-DC:
       kind: ceos
-      image: cloudeos:latest
       mgmt-ipv4: 172.100.100.102
-      env:
-        INTFTYPE: eth
-        SIMULATION_SFE_DPDK_MEM: 4096
-        SIMULATION_SFE_BUFFERS: 4096
-        SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/DC1-R1.cfg
       binds:
-        - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+        - sn/west-dc.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/WEST-DC.cfg
       ports:
         - '22002:22'
         - '8002:80'
         - '44302:443'
 
-    DC1-R2:
+    WEST-R1:
       kind: ceos
       image: cloudeos:latest
       mgmt-ipv4: 172.100.100.103
@@ -77,82 +64,100 @@ topology:
         SIMULATION_SFE_DPDK_MEM: 4096
         SIMULATION_SFE_BUFFERS: 4096
         SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/DC1-R2.cfg
       binds:
+        - sn/west-r1.txt:/mnt/flash/ceos-config:ro
         - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/WEST-R1.cfg
       ports:
         - '22003:22'
         - '8003:80'
         - '44303:443'
 
-    DC1-BORDER1:
+    WEST-R2:
       kind: ceos
+      image: cloudeos:latest
       mgmt-ipv4: 172.100.100.104
-      startup-config: ./configs/DC1-BORDER1.cfg
+      env:
+        INTFTYPE: eth
+        SIMULATION_SFE_DPDK_MEM: 4096
+        SIMULATION_SFE_BUFFERS: 4096
+        SIMULATION_SFE_MAXVRFS: 8
+      binds:
+        - sn/west-r2.txt:/mnt/flash/ceos-config:ro
+        - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/WEST-R2.cfg
       ports:
         - '22004:22'
         - '8004:80'
         - '44304:443'
 
-    DC1-BORDER2:
+    HostA1:
+      kind: linux
+      mgmt-ipv4: 172.100.100.201
+      env:
+        IPV4: 10.10.10.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.10.10.1
+        IPV6: 2001:db8:10:10::103/64
+      ports:
+        - '22201:22'
+
+    HostA2:
+      kind: linux
+      mgmt-ipv4: 172.100.100.202
+      env:
+        IPV4: 10.20.20.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.20.20.1
+        IPV6: 2001:db8:20:20::103/64
+      ports:
+        - '22202:22'
+
+#####################
+### EAST
+#####################
+
+    EAST-AGG:
       kind: ceos
       mgmt-ipv4: 172.100.100.105
-      startup-config: ./configs/DC1-BORDER2.cfg
+      binds:
+        - sn/east-agg.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/EAST-AGG.cfg
       ports:
         - '22005:22'
         - '8005:80'
         - '44305:443'
 
-    HostA1:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.201
-      ports:
-        - '22201:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.10.10.101/24 -i6 2001:db8:10:10::101/64 -g 10.10.10.1
-
-    HostA2:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.202
-      ports:
-        - '22202:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.20.20.101/24 -i6 2001:db8:20:20::101/64 -g 10.20.20.1
-
-    HostA3:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.203
-      ports:
-        - '22203:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.30.30.101/24 -i6 2001:db8:30:30::101/64 -g 10.30.30.1
-
-  ###########################
-  ##### DC2
-  ###########################
-
-    DC2-SPINE:
+    EAST-DC:
       kind: ceos
       mgmt-ipv4: 172.100.100.106
-      startup-config: ./configs/DC2-SPINE.cfg
+      binds:
+        - sn/east-dc.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/EAST-DC.cfg
       ports:
         - '22006:22'
         - '8006:80'
         - '44306:443'
 
-    DC2-LEAF:
+    EAST-R1:
       kind: ceos
+      image: cloudeos:latest
       mgmt-ipv4: 172.100.100.107
-      startup-config: ./configs/DC2-LEAF.cfg
+      env:
+        INTFTYPE: eth
+        SIMULATION_SFE_DPDK_MEM: 4096
+        SIMULATION_SFE_BUFFERS: 4096
+        SIMULATION_SFE_MAXVRFS: 8
+      binds:
+        - sn/east-r1.txt:/mnt/flash/ceos-config:ro
+        - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/EAST-R1.cfg
       ports:
         - '22007:22'
         - '8007:80'
         - '44307:443'
 
-    DC2-R1:
+    EAST-R2:
       kind: ceos
       image: cloudeos:latest
       mgmt-ipv4: 172.100.100.108
@@ -161,15 +166,72 @@ topology:
         SIMULATION_SFE_DPDK_MEM: 4096
         SIMULATION_SFE_BUFFERS: 4096
         SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/DC2-R1.cfg
       binds:
+        - sn/east-r2.txt:/mnt/flash/ceos-config:ro
         - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/EAST-R2.cfg
       ports:
         - '22008:22'
         - '8008:80'
         - '44308:443'
 
-    DC2-R2:
+    HostB1:
+      kind: linux
+      mgmt-ipv4: 172.100.100.203
+      env:
+        IPV4: 10.30.30.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.30.30.1
+        IPV6: 2001:db8:30:30::101/64
+      ports:
+        - '22203:22'
+
+    HostB2:
+      kind: linux
+      mgmt-ipv4: 172.100.100.204
+      env:
+        IPV4: 10.40.40.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.40.40.1
+        IPV6: 2001:db8:40:40::101/64
+      ports:
+        - '22204:22'
+
+#####################
+### CORE
+#####################
+
+    CORE:
+      kind: ceos
+      mgmt-ipv4: 172.100.100.150
+      binds:
+        - sn/core.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/CORE.cfg
+      ports:
+        - '22050:22'
+        - '8050:80'
+        - '44350:443'
+
+#####################
+### INTERNET
+#####################
+
+    INTERNET:
+      kind: ceos
+      mgmt-ipv4: 172.100.100.151
+      binds:
+        - sn/internet.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/INTERNET.cfg
+      ports:
+        - '22051:22'
+        - '8051:80'
+        - '44351:443'
+
+#####################
+### SITE 1
+#####################
+
+    S1-R1:
       kind: ceos
       image: cloudeos:latest
       mgmt-ipv4: 172.100.100.109
@@ -178,81 +240,86 @@ topology:
         SIMULATION_SFE_DPDK_MEM: 4096
         SIMULATION_SFE_BUFFERS: 4096
         SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/DC2-R2.cfg
       binds:
+        - sn/s1-r1.txt:/mnt/flash/ceos-config:ro
         - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/S1-R1.cfg
       ports:
         - '22009:22'
         - '8009:80'
         - '44309:443'
 
-    DC2-BORDER1:
+    S1-SW1:
       kind: ceos
       mgmt-ipv4: 172.100.100.110
-      startup-config: ./configs/DC2-BORDER1.cfg
+      binds:
+        - sn/s1-sw1.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/S1-SW1.cfg
       ports:
         - '22010:22'
         - '8010:80'
         - '44310:443'
 
-    DC2-BORDER2:
-      kind: ceos
-      mgmt-ipv4: 172.100.100.111
-      startup-config: ./configs/DC2-BORDER2.cfg
-      ports:
-        - '22011:22'
-        - '8011:80'
-        - '44311:443'
-
-    HostB1:
+    HostC1:
       kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.204
-      ports:
-        - '22204:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.10.10.102/24 -i6 2001:db8:10:10::102/64 -g 10.10.10.1
-
-    HostB2:
-      kind: linux
-      image: mitchv85/devhost
       mgmt-ipv4: 172.100.100.205
+      env:
+        IPV4: 10.50.50.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.50.50.1
+        IPV6: 2001:db8:50:50::101/64
       ports:
         - '22205:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.40.40.101/24 -i6 2001:db8:40:40::101/64 -g 10.40.40.1
 
-    HostB3:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.206
-      ports:
-        - '22206:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.50.50.101/24 -i6 2001:db8:50:50::101/64 -g 10.50.50.1
+#####################
+### SITE 2
+#####################
 
-  ###########################
-  ##### SITE1
-  ###########################
-
-    S1-R1:
+    S2-R1:
       kind: ceos
       image: cloudeos:latest
-      mgmt-ipv4: 172.100.100.112
+      mgmt-ipv4: 172.100.100.111
       env:
         INTFTYPE: eth
         SIMULATION_SFE_DPDK_MEM: 4096
         SIMULATION_SFE_BUFFERS: 4096
         SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/S1-R1.cfg
       binds:
+        - sn/s2-r1.txt:/mnt/flash/ceos-config:ro
         - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/S2-R1.cfg
+      ports:
+        - '22011:22'
+        - '8011:80'
+        - '44311:443'
+
+    S2-SW1:
+      kind: ceos
+      mgmt-ipv4: 172.100.100.112
+      binds:
+        - sn/s2-sw1.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/S2-SW1.cfg
       ports:
         - '22012:22'
         - '8012:80'
         - '44312:443'
 
-    S1-R2:
+    HostD1:
+      kind: linux
+      mgmt-ipv4: 172.100.100.206
+      env:
+        IPV4: 10.60.60.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.60.60.1
+        IPV6: 2001:db8:60:60::101/64
+      ports:
+        - '22206:22'
+
+#####################
+### SITE 3
+#####################
+
+    S3-R1:
       kind: ceos
       image: cloudeos:latest
       mgmt-ipv4: 172.100.100.113
@@ -261,165 +328,75 @@ topology:
         SIMULATION_SFE_DPDK_MEM: 4096
         SIMULATION_SFE_BUFFERS: 4096
         SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/S1-R2.cfg
       binds:
+        - sn/s3-r1.txt:/mnt/flash/ceos-config:ro
         - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/S3-R1.cfg
       ports:
         - '22013:22'
         - '8013:80'
         - '44313:443'
 
-    S1-SW1:
+    S3-SW1:
       kind: ceos
       mgmt-ipv4: 172.100.100.114
-      startup-config: ./configs/S1-SW1.cfg
+      binds:
+        - sn/s3-sw1.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/S3-SW1.cfg
       ports:
         - '22014:22'
         - '8014:80'
         - '44314:443'
 
-    HostC1:
+    HostE1:
       kind: linux
-      image: mitchv85/devhost
       mgmt-ipv4: 172.100.100.207
+      env:
+        IPV4: 10.70.70.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.70.70.1
+        IPV6: 2001:db8:70:70::101/64
       ports:
         - '22207:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.60.60.101/24 -i6 2001:db8:60:60::102/64 -g 10.60.60.1
-
-    HostC2:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.208
-      ports:
-        - '22208:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.70.70.101/24 -i6 2001:db8:70:70::101/64 -g 10.70.70.1
-
-  ###########################
-  ##### SITE2
-  ###########################
-
-    S2-R1:
-      kind: ceos
-      image: cloudeos:latest
-      mgmt-ipv4: 172.100.100.115
-      env:
-        INTFTYPE: eth
-        SIMULATION_SFE_DPDK_MEM: 4096
-        SIMULATION_SFE_BUFFERS: 4096
-        SIMULATION_SFE_MAXVRFS: 8
-      startup-config: ./configs/S2-R1.cfg
-      binds:
-        - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
-      ports:
-        - '22015:22'
-        - '8015:80'
-        - '44315:443'
-
-    S2-SW1:
-      kind: ceos
-      mgmt-ipv4: 172.100.100.116
-      startup-config: ./configs/S2-SW1.cfg
-      ports:
-        - '22016:22'
-        - '8016:80'
-        - '44316:443'
-
-    HostD1:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.209
-      ports:
-        - '22209:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.80.80.101/24 -i6 2001:db8:80:80::102/64 -g 10.80.80.1
-
-    HostD2:
-      kind: linux
-      image: mitchv85/devhost
-      mgmt-ipv4: 172.100.100.210
-      ports:
-        - '22210:22'
-      exec:
-        - bash /usr/local/bin/hostnetconfig.sh -i4 10.90.90.101/24 -i6 2001:db8:90:90::101/64 -g 10.90.90.1
-
-  ###########################
-  ##### INTERNET
-  ###########################
-
-    INTERNET:
-      kind: ceos
-      mgmt-ipv4: 172.100.100.118
-      startup-config: ./configs/INTERNET.cfg
-      ports:
-        - '22018:22'
-        - '8018:80'
-        - '44318:443'
-
-  ###########################
-  ##### DCI-MPLS
-  ###########################
-
-    DCI-MPLS:
-      kind: ceos
-      mgmt-ipv4: 172.100.100.119
-      startup-config: ./configs/DCI-MPLS.cfg
-      ports:
-        - '22019:22'
-        - '8019:80'
-        - '44319:443'
 
   links:
-  #####################
-  ### DC1 1
-  #####################
-    - endpoints: ["DC1-SPINE:et1", "DC1-LEAF:et1"]
-    - endpoints: ["DC1-SPINE:et2", "DC1-R1:eth1"]
-    - endpoints: ["DC1-SPINE:et3", "DC1-R2:eth1"]
-    - endpoints: ["DC1-SPINE:et4", "DC1-BORDER1:et1"]
-    - endpoints: ["DC1-SPINE:et5", "DC1-BORDER2:et1"]
-    - endpoints: ["DC1-LEAF:et2", "HostA1:eth1"]
-    - endpoints: ["DC1-LEAF:et3", "HostA2:eth1"]
-    - endpoints: ["DC1-LEAF:et4", "HostA3:eth1"]
-  #####################
-  ### DC1 2
-  #####################
-    - endpoints: ["DC2-SPINE:et1", "DC2-LEAF:et1"]
-    - endpoints: ["DC2-SPINE:et2", "DC2-R1:eth1"]
-    - endpoints: ["DC2-SPINE:et3", "DC2-R2:eth1"]
-    - endpoints: ["DC2-SPINE:et4", "DC2-BORDER1:et1"]
-    - endpoints: ["DC2-SPINE:et5", "DC2-BORDER2:et1"]
-    - endpoints: ["DC2-LEAF:et2", "HostB1:eth1"]
-    - endpoints: ["DC2-LEAF:et3", "HostB2:eth1"]
-    - endpoints: ["DC2-LEAF:et4", "HostB3:eth1"]
-  #####################
-  ### Site1
-  #####################
+#####################
+### WEST
+#####################
+    - endpoints: ["WEST-AGG:et1", "CORE:et1"]
+    - endpoints: ["WEST-AGG:et2", "WEST-DC:et1"]
+    - endpoints: ["WEST-AGG:et3", "WEST-R1:eth1"]
+    - endpoints: ["WEST-AGG:et4", "WEST-R2:eth1"]
+    - endpoints: ["WEST-DC:et2", "HostA1:eth1"]
+    - endpoints: ["WEST-DC:et3", "HostA2:eth1"]
+    - endpoints: ["WEST-R1:eth2", "INTERNET:et1"]
+    - endpoints: ["WEST-R2:eth2", "INTERNET:et2"]
+#####################
+### EAST
+#####################
+    - endpoints: ["EAST-AGG:et1", "CORE:et2"]
+    - endpoints: ["EAST-AGG:et2", "EAST-DC:et1"]
+    - endpoints: ["EAST-AGG:et3", "EAST-R1:eth1"]
+    - endpoints: ["EAST-AGG:et4", "EAST-R2:eth1"]
+    - endpoints: ["EAST-DC:et2", "HostB1:eth1"]
+    - endpoints: ["EAST-DC:et3", "HostB2:eth1"]
+    - endpoints: ["EAST-R1:eth2", "INTERNET:et3"]
+    - endpoints: ["EAST-R2:eth2", "INTERNET:et4"]
+#####################
+### SITE 1
+#####################
+    - endpoints: ["S1-R1:eth2", "INTERNET:et5"]
     - endpoints: ["S1-R1:eth1", "S1-SW1:et1"]
-    - endpoints: ["S1-R2:eth1", "S1-SW1:et2"]
-    - endpoints: ["S1-SW1:et3", "HostC1:eth1"]
-    - endpoints: ["S1-SW1:et4", "HostC2:eth1"]
-  #####################
-  ### Site2
-  #####################
+    - endpoints: ["S1-SW1:et2", "HostC1:eth1"]
+#####################
+### SITE 2
+#####################
+    - endpoints: ["S2-R1:eth2", "INTERNET:et6"]
     - endpoints: ["S2-R1:eth1", "S2-SW1:et1"]
     - endpoints: ["S2-SW1:et2", "HostD1:eth1"]
-    - endpoints: ["S2-SW1:et3", "HostD2:eth1"]
-  #####################
-  ### INTERNET
-  #####################
-    - endpoints: ["INTERNET:et1", "DC1-R1:eth2"]
-    - endpoints: ["INTERNET:et2", "DC1-R2:eth2"]
-    - endpoints: ["INTERNET:et3", "DC2-R1:eth2"]
-    - endpoints: ["INTERNET:et4", "DC2-R2:eth2"]
-    - endpoints: ["INTERNET:et5", "S1-R1:eth2"]
-    - endpoints: ["INTERNET:et6", "S1-R2:eth2"]
-    - endpoints: ["INTERNET:et7", "S2-R1:eth2"]
-  #####################
-  ### DCI-MPLS
-  #####################
-    - endpoints: ["DCI-MPLS:et1", "DC1-BORDER1:et2"]
-    - endpoints: ["DCI-MPLS:et2", "DC1-BORDER2:et2"]
-    - endpoints: ["DCI-MPLS:et3", "DC2-BORDER1:et2"]
-    - endpoints: ["DCI-MPLS:et4", "DC2-BORDER2:et2"]
+#####################
+### SITE 3
+#####################
+    - endpoints: ["S3-R1:eth2", "INTERNET:et7"]
+    - endpoints: ["S3-R1:eth1", "S3-SW1:et1"]
+    - endpoints: ["S3-SW1:et2", "HostE1:eth1"]
