@@ -359,6 +359,50 @@ topology:
       ports:
         - '22207:22'
 
+#####################
+### SITE 4
+#####################
+
+    S4-R1:
+      kind: ceos
+      image: cloudeos:latest
+      mgmt-ipv4: 172.100.100.115
+      env:
+        INTFTYPE: eth
+        SIMULATION_SFE_DPDK_MEM: 4096
+        SIMULATION_SFE_BUFFERS: 4096
+        SIMULATION_SFE_MAXVRFS: 8
+      binds:
+        - sn/s4-r1.txt:/mnt/flash/ceos-config:ro
+        - ipsec-license.json:/mnt/flash/ipsec-license.json:ro
+      startup-config: ./configs/S4-R1.cfg
+      ports:
+        - '22015:22'
+        - '8015:80'
+        - '44315:443'
+
+    S4-SW1:
+      kind: ceos
+      mgmt-ipv4: 172.100.100.116
+      binds:
+        - sn/s4-sw1.txt:/mnt/flash/ceos-config:ro
+      startup-config: configs/S4-SW1.cfg
+      ports:
+        - '22016:22'
+        - '8016:80'
+        - '44316:443'
+
+    HostF1:
+      kind: linux
+      mgmt-ipv4: 172.100.100.208
+      env:
+        IPV4: 10.80.80.101/24
+        STATIC_ROUTE: 10.0.0.0/8
+        GW: 10.80.80.1
+        IPV6: 2001:db8:80:80::101/64
+      ports:
+        - '22208:22'
+
   links:
 #####################
 ### WEST
@@ -400,3 +444,9 @@ topology:
     - endpoints: ["S3-R1:eth2", "INTERNET:et7"]
     - endpoints: ["S3-R1:eth1", "S3-SW1:et1"]
     - endpoints: ["S3-SW1:et2", "HostE1:eth1"]
+#####################
+### SITE 4
+#####################
+    - endpoints: ["S4-R1:eth2", "INTERNET:et8"]
+    - endpoints: ["S4-R1:eth1", "S4-SW1:et1"]
+    - endpoints: ["S4-SW1:et2", "HostF1:eth1"]
