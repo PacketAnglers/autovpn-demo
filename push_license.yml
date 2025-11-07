@@ -19,3 +19,4 @@
       commands:
         - "license import flash:ipsec-license.json"
         - "license update"
+
