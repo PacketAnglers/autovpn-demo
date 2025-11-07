@@ -4,11 +4,11 @@ help: ## Display help message
 
 .PHONY: push-configs
 push-configs: ## Push configs to lab
-	ansible-playbook config_push.yml
+	ansible-playbook config_push.yml -i inventory/inventory.yml
 
 .PHONY: grab-configs
 grab-configs: ## Grab configs from the lab
-	ansible-playbook config_grab.yml
+	ansible-playbook config_grab.yml -i inventory/inventory.yml
 
 .PHONY: push-license
 push-license: ## Push license to CloudEOS nodes
