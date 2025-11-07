@@ -175,7 +175,7 @@
       "id": "S1-R1",
       "icon": "router",
       "position": {
-        "x": -133,
+        "x": -161,
         "y": 217
       },
       "geoCoordinates": {
@@ -187,7 +187,7 @@
       "id": "S1-SW1",
       "icon": "router",
       "position": {
-        "x": -133,
+        "x": -161,
         "y": 273
       },
       "geoCoordinates": {
@@ -199,7 +199,7 @@
       "id": "HostC1",
       "icon": "router",
       "position": {
-        "x": -133,
+        "x": -161,
         "y": 329
       },
       "geoCoordinates": {
@@ -211,7 +211,7 @@
       "id": "S2-R1",
       "icon": "router",
       "position": {
-        "x": -49,
+        "x": -105,
         "y": 217
       },
       "geoCoordinates": {
@@ -223,7 +223,7 @@
       "id": "S2-SW1",
       "icon": "router",
       "position": {
-        "x": -49,
+        "x": -105,
         "y": 273
       },
       "geoCoordinates": {
@@ -235,7 +235,7 @@
       "id": "HostD1",
       "icon": "router",
       "position": {
-        "x": -49,
+        "x": -105,
         "y": 329
       },
       "geoCoordinates": {
@@ -247,7 +247,7 @@
       "id": "S3-R1",
       "icon": "router",
       "position": {
-        "x": 35,
+        "x": 7,
         "y": 217
       },
       "geoCoordinates": {
@@ -259,7 +259,7 @@
       "id": "S3-SW1",
       "icon": "router",
       "position": {
-        "x": 35,
+        "x": 7,
         "y": 273
       },
       "geoCoordinates": {
@@ -271,12 +271,48 @@
       "id": "HostE1",
       "icon": "router",
       "position": {
-        "x": 35,
+        "x": 7,
         "y": 329
       },
       "geoCoordinates": {
         "lat": 49.08482688840225,
         "lng": 9.507895390625677
+      }
+    },
+    {
+      "id": "S4-R1",
+      "icon": "router",
+      "position": {
+        "x": 63,
+        "y": 217
+      },
+      "geoCoordinates": {
+        "lat": 48.86743558405444,
+        "lng": 9.303547564538716
+      }
+    },
+    {
+      "id": "S4-SW1",
+      "icon": "router",
+      "position": {
+        "x": 63,
+        "y": 273
+      },
+      "geoCoordinates": {
+        "lat": 49.067435584054444,
+        "lng": 9.503547564538717
+      }
+    },
+    {
+      "id": "HostF1",
+      "icon": "router",
+      "position": {
+        "x": 63,
+        "y": 329
+      },
+      "geoCoordinates": {
+        "lat": 49.26743558405444,
+        "lng": 9.703547564538717
       }
     }
   ]
